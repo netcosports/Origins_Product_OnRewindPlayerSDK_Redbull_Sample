@@ -1,0 +1,67 @@
+# Uncomment the next line to define a global platform for your project
+
+platform :ios, '13.0'
+
+source 'https://repo.plugin.npaw.com/release/plugin-ios-cocoapods.git'
+source 'https://cdn.cocoapods.org/'
+
+use_frameworks!
+inhibit_all_warnings!
+
+install! 'cocoapods', :disable_input_output_paths => true
+
+def download_spec! (options={})
+  url = options[:url]
+  FileUtils.mkdir_p './specs'
+  Dir.chdir('./specs'){
+    `curl -X GET '#{url}' -O -k -f -L`
+  }
+end
+
+$onrewind_product_base_url='https://origins-mobile-products.s3.eu-west-1.amazonaws.com/onrewind_player/redbull/1.1.21'
+download_spec!(url: "#{$onrewind_product_base_url}/OnRewindSDK.podspec")
+download_spec!(url: "#{$onrewind_product_base_url}/onrewindshared.podspec")
+
+target 'SDKSample' do
+
+  # SDK specs
+  pod 'OnRewindSDK', :podspec => './specs/OnRewindSDK.podspec'
+  pod 'onrewindshared', :podspec => './specs/onrewindshared.podspec'
+
+  # sample
+  pod 'Kingfisher'
+  pod 'PinLayout'
+  pod 'Dioptra'
+  pod 'Dioptra/AV'
+
+  pod 'RxSwift'
+  pod 'RxCocoa'
+  pod 'RxGesture'
+
+  pod 'Astrarium'
+  pod 'SwiftyJSON'
+  pod 'Gnomon'
+
+  pod 'Alidade'
+  pod 'Alidade/Associatable'
+  pod 'Alidade/Flowable'
+  pod 'Alidade/FormatterPool'
+  pod 'Alidade/UI'
+  pod 'Alidade/String'
+
+  pod 'Astrolabe'
+  pod 'Astrolabe/Loaders'
+  pod 'Sundial'
+
+end
+
+post_install do |installer|
+  installer.pods_project.targets.each do |target|
+    target.build_configurations.each do |config|
+      config.build_settings['BUILD_LIBRARY_FOR_DISTRIBUTION'] = 'YES'
+      if config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'].to_f < 13.0
+        config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '13.0'
+      end
+    end
+  end
+end
